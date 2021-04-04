@@ -19,6 +19,7 @@ import {HandlerFunction} from './functions';
 import {SignatureType} from './types';
 import {setLatestRes} from './invoker';
 import {registerFunctionRoutes} from './router';
+import {pubSubEmulatorMiddleware} from './middleware';
 
 /**
  * Creates and configures an Express application and returns an HTTP server
@@ -96,6 +97,12 @@ export function getServer(
   // Disable Express 'x-powered-by' header:
   // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
   app.disable('x-powered-by');
+
+  // Local development with the pubsub emulator requires marshalling of
+  // event payloads.
+  if (process.env['PUBSUB_EMULATOR_HOST']) {
+    app.use(pubSubEmulatorMiddleware);
+  }
 
   registerFunctionRoutes(app, userFunction, functionSignatureType);
   return http.createServer(app);
